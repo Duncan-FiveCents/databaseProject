@@ -7,7 +7,7 @@ date-created: 13/5/22
 '''
 
 import sqlite3, sys, pathlib
-from flask import Flask, render_template, request
+from flask import Flask, redirect, render_template, request, url_for
 
 ### --- Variables -- ###
 
@@ -23,26 +23,32 @@ if (pathlib.Path.cwd() / PROJECT_LIST).exists() and (pathlib.Path.cwd() / MATERI
 
 app = Flask(__name__)
 
-@app.route("/")
+@app.route("/",methods = ["GET","POST"])
 def index():
     """Website homepage
     """
     return render_template("index.html")
 
-@app.route("/new-project")
+@app.route("/createProject",methods = ["GET","POST"])
 def createProject():
     """Form to create a project
     """
     CONNECTION = sqlite3.connect(MATERIAL_LIST)
     CURSOR = CONNECTION.cursor()
 
-    if request.form():
+    ALERT = ""
+    # Used to determine alert colour since I can't use f strings in jinja
+    # 0 for green, 1 for red, and I might add more later
+    ALERT_TONE = 0
+
+    if request.form:
         PROJECT_NAME = request.form.get("title")
         PROJECT_NAME.replace(" ","-") # Replaces any spaces with hyphens because spaces might break sqlite (I didn't test it)
         DIFFICULTY = request.form.get("difficulty")
         TIME = request.form.get("time")
+        TEXT = [PROJECT_NAME,f"(Difficulty: {DIFFICULTY}|Time: {TIME} hours)"]
         CURSOR.execute("""
-            CREATE TABLE ?
+        CREATE TABLE ?
             VALUES(
                 part_name TEXT PRIMARY KEY,
                 pieces TEXT, material TEXT,
@@ -52,10 +58,10 @@ def createProject():
         ;""")
         CONNECTION.commit()
         CONNECTION.close()
-        TEXT = f"(Difficulty: {DIFFICULTY}|Time: {TIME} hours)"
-
-    return render_template("new-project.html")
-
+        # Redirects to the home page if form is submitted
+        return redirect("/")
+    
+    return render_template("new-project.html",alert=ALERT,tone=ALERT_TONE)
 
 ### --- Inputs --- ###
 
@@ -99,4 +105,5 @@ def writeFile(DATA):
 
 if __name__ == "__main__":
     if FIRST_RUN: createFiles()
+    DATA = readFile()
     app.run(debug=True)
