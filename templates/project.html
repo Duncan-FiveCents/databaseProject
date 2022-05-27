@@ -9,20 +9,24 @@
         <div class="container">
             <div class="jumbotron mt-5">
                 <h1>Construction Web App Thingy</h1><h6>Created by Duncan Nickel</h6>
-                <table>
-                    <tr><th><a href="/createProject">Create a new project</a></th></tr>
-                </table>
-                {% if alert != "" %}
-                    {% if tone == 0 %}
-                        <div class="alert alert-success" role="alert">{{alert}}</div>
-                    {% endif %}
-                    {% if tone == 1 %}
-                        <div class="alert alert-danger" role="alert">{{alert}}</div>
-                    {% endif %}
-                {% endif %}
-                <hr>
+                <a href="/">Go back</a><hr>
+                
+                <h3>Add an instruction:</h3>
+                <form method="POST" action="/<project>">
+                    <label for="new_task"> Info: </label> <input type="text" name="new_task">
+                    <input type="submit" value="Add">
+                </form><hr>
+
+                <h3>Add a part:</h3>
+                <form method="POST" action="/<project>">
+                    <label for="part_name"> Part name: </label> <input type="text" name="part_name">
+                </form><hr>
+
+                <h3>{{name}}</h2>
+                <h4>{{info}}</h4>
                 <ul>
-                    
+                {% for task in instructions %}
+                    <li>{{intructions[task]}}</li>
                 </ul>
             </div>
         </div>

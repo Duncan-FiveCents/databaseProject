@@ -7,17 +7,26 @@ date-created: 13/5/22
 '''
 
 import sqlite3, os, pathlib
-from flask import Flask, redirect, render_template, request, session, url_for
+from flask import Flask, redirect, render_template, request, session
 
 ### --- Variables -- ###
 
 PROJECT_LIST = "project_list.txt"
 MATERIAL_LIST = "material_list.db"
 
+DIFFICULTIES = {
+    1:"Simple",
+    2:"Easy",
+    3:"Medium",
+    4:"Difficult",
+    5:"Morbin' Time"
+}
 
 FIRST_RUN = True
 # Either both files exist, or neither do (unless the user does something dumb)
 if (pathlib.Path.cwd() / PROJECT_LIST).exists() and (pathlib.Path.cwd() / MATERIAL_LIST).exists(): FIRST_RUN = False
+
+ALERT_SHOWN = False # Used for determining whether to show alerts
 
 ### --- Flask --- ###
 
@@ -31,10 +40,15 @@ app.secret_key = KEY
 
 @app.route("/",methods = ["GET","POST"])
 def index():
+    global ALERT_SHOWN
     """Website homepage
     """
-    if "ALERT" in session: ALERT = session["ALERT"]
-    else: ALERT = ["",0]
+    if "ALERT" in session and ALERT_SHOWN == False:
+        ALERT = session["ALERT"]
+        ALERT_SHOWN = True
+    else:
+        ALERT = ["",0]
+        ALERT_SHOWN = False
 
     return render_template("index.html",alert=ALERT[0],tone=ALERT[1])
 
@@ -42,33 +56,46 @@ def index():
 def createProject():
     """Form to create a project
     """
-    ALERT = ""
-    # Used to determine alert colour since I can't use f strings in jinja
-    # 0 for green, 1 for red, and I might add more later
-    ALERT_TONE = 0
+    global ALERT_SHOWN
 
     if request.form:
         PROJECT_NAME = request.form.get("title")
-        PROJECT_NAME = PROJECT_NAME.replace(" ","_") # Replaces any spaces with underscores because spaces break
         DIFFICULTY = request.form.get("difficulty")
         TIME = request.form.get("time")
-        TEXT = [PROJECT_NAME,f"(Difficulty: {DIFFICULTY}|Time: {TIME} hours)"]
+        TEXT = [PROJECT_NAME,f"(Difficulty: {DIFFICULTIES[DIFFICULTY]}|Time: {TIME} hours)"]
+        writeProject(TEXT)
+        PROJECT_NAME = PROJECT_NAME.replace(" ","_") # Replaces any spaces with underscores because spaces break
 
         if tableQuery(PROJECT_NAME) == None:
             createTable(PROJECT_NAME)
-            ALERT = "Project succesfully created!"
-            ALERT_TONE = 0
+            # Used to determine alert colour since I can't use f strings in jinja
+            # 0 for green, 1 for red, and I might add more later
+            ALERT_DATA = ["Project successfully created!",0]
         else:
-            ALERT = "Project with that name already exists!"
-            ALERT_TONE = 1
-
-        ALERT_DATA = [ALERT,ALERT_TONE]
+            ALERT_DATA = ["Project with that name already exists!",1]
+        
+        # Essentially makes the alert data accessible from other pages
         session["ALERT"] = ALERT_DATA
+
+        ALERT_SHOWN = False
 
         # Redirects to the home page if form is submitted
         return redirect("/")
 
     return render_template("new-project.html")
+
+@app.route("/<project>",methods = ["GET","POST"])
+def displayProject(PROJECT):
+    LIST = readFile()
+    for i in range(len(LIST)):
+        if LIST[i][0] == PROJECT:
+            PROJECT = LIST[i][0]
+            break
+    PROJECT_NAME = PROJECT[0]
+    INFO = PROJECT[1]
+    INSTRUCTIONS = PROJECT[2:]
+    return render_template("/project",name=PROJECT_NAME,info=INFO,instructions=INSTRUCTIONS)
+
 
 ### --- Inputs --- ###
 
@@ -114,15 +141,18 @@ def createTable(NAME):
     CONNECTION.commit()
     CONNECTION.close()
 
-def writeProject(NAME):
+def writeProject(PROJECT):
     """Writes a new project to the project file
 
     Args:
         NAME (list): project title, difficulty, and time
     """
     DATA = readFile()
-    DATA.append(NAME)
+    DATA.append(PROJECT)
     writeFile(DATA)
+
+def getAllProjects():
+    pass
 
 ### --- Outputs --- ###
 
