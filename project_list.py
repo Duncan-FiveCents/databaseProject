@@ -49,8 +49,10 @@ def index():
     else:
         ALERT = ["",0]
         ALERT_SHOWN = False
+    
+    PROJECTS = getAllProjects()
 
-    return render_template("index.html",alert=ALERT[0],tone=ALERT[1])
+    return render_template("index.html",alert=ALERT[0],tone=ALERT[1],projects=PROJECTS)
 
 @app.route("/createProject",methods = ["GET","POST"])
 def createProject():
@@ -62,7 +64,7 @@ def createProject():
         PROJECT_NAME = request.form.get("title")
         DIFFICULTY = request.form.get("difficulty")
         TIME = request.form.get("time")
-        TEXT = [PROJECT_NAME,f"(Difficulty: {DIFFICULTIES[DIFFICULTY]}|Time: {TIME} hours)"]
+        TEXT = [PROJECT_NAME,f" (Difficulty: {DIFFICULTIES[int(DIFFICULTY)]} | Time: {TIME} hours)"]
         writeProject(TEXT)
         PROJECT_NAME = PROJECT_NAME.replace(" ","_") # Replaces any spaces with underscores because spaces break
 
@@ -85,16 +87,16 @@ def createProject():
     return render_template("new-project.html")
 
 @app.route("/<project>",methods = ["GET","POST"])
-def displayProject(PROJECT):
-    LIST = readFile()
+def displayProject(project):
+    LIST = getAllProjects()
     for i in range(len(LIST)):
-        if LIST[i][0] == PROJECT:
-            PROJECT = LIST[i][0]
+        if LIST[i][0] == project:
+            project = LIST[i][0]
             break
-    PROJECT_NAME = PROJECT[0]
-    INFO = PROJECT[1]
-    INSTRUCTIONS = PROJECT[2:]
-    return render_template("/project",name=PROJECT_NAME,info=INFO,instructions=INSTRUCTIONS)
+    PROJECT_NAME = project[0]
+    INFO = project[1]
+    INSTRUCTIONS = project[2:]
+    return render_template("/project.html",name=PROJECT_NAME,info=INFO,instructions=INSTRUCTIONS)
 
 
 ### --- Inputs --- ###
@@ -116,10 +118,10 @@ def readFile():
     """
     FILE = open(PROJECT_LIST)
     DATA = FILE.readlines()
+    for i in range(len(DATA)):
+        DATA[i].rstrip()
     FILE.close()
     return DATA
-
-### --- Processing --- ###
 
 def createTable(NAME):
     """Creates a table with the given name
@@ -141,6 +143,27 @@ def createTable(NAME):
     CONNECTION.commit()
     CONNECTION.close()
 
+### --- Processing --- ###
+
+
+
+### --- Outputs --- ###
+
+def writeFile(DATA):
+    """Writes data to the project list
+
+    Args:
+        DATA (list): list of projects
+    """
+    NEW_DATA = ""
+    FILE = open(PROJECT_LIST, "w")
+    for i in range(len(DATA)):
+        for j in range(len(DATA[i])):
+            NEW_DATA += f"{DATA[i][j]},"
+    NEW_DATA += "\n"
+    FILE.write(NEW_DATA)
+    FILE.close()
+
 def writeProject(PROJECT):
     """Writes a new project to the project file
 
@@ -151,22 +174,12 @@ def writeProject(PROJECT):
     DATA.append(PROJECT)
     writeFile(DATA)
 
-def getAllProjects():
-    pass
-
-### --- Outputs --- ###
-
-def writeFile(DATA):
-    """Writes data to the project list
-
-    Args:
-        DATA (_type_): _description_
-    """
-    FILE = open(PROJECT_LIST, "w")
-    FILE.writelines(DATA)
-    FILE.close()
-
 def tableQuery(NAME):
+    """Checks if a certain table already exists
+
+    Returns:
+        str: returns the name of the table, or None if the table does not exist
+    """
     CONNECTION = sqlite3.connect(MATERIAL_LIST)
     CURSOR = CONNECTION.cursor()
 
@@ -177,6 +190,20 @@ def tableQuery(NAME):
         AND name='{NAME}'
     ;""").fetchone()
     return QUERY
+
+def getAllProjects():
+    """Reads and cleans up items from the project file
+
+    Returns:
+        list: projects with info and instructions
+    """
+    DATA = readFile()
+    print(DATA)
+    PROJECTS = []
+    for i in range(len(DATA)):
+        PROJECTS.append(DATA[i].split(","))
+    print(PROJECTS)
+    return PROJECTS
 
 ### --- Main Code --- ###
 
