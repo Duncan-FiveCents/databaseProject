@@ -22,8 +22,16 @@ DIFFICULTIES = {
     5:"Morbin' Time"
 }
 
+# Used to make some code cleaner later
+PART_DATA = {
+    1:"part_name",
+    2:'pieces',3:"material",
+    4:"fin_thick",5:"fin_width",6:"fin_length",
+    7:"rough_thick",8:"rough_width",9:"rough_length"
+}
+
 FIRST_RUN = True
-# Either both files exist, or neither do (unless the user does something dumb)
+# Either both files exist, or neither do (unless whoever is running this does something dumb)
 if (pathlib.Path.cwd() / PROJECT_LIST).exists() and (pathlib.Path.cwd() / MATERIAL_LIST).exists(): FIRST_RUN = False
 
 ALERT_SHOWN = False # Used for determining whether to show alerts
@@ -89,13 +97,28 @@ def createProject():
 @app.route("/<project>",methods = ["GET","POST"])
 def displayProject(project):
     LIST = getAllProjects()
+    # Checks for a matching project name and grabs that data
     for i in range(len(LIST)):
         if LIST[i][0] == project:
-            project = LIST[i][0]
+            project = LIST[i]
             break
-    PROJECT_NAME = project[0]
+
+    PROJECT_NAME =project[0]
     INFO = project[1]
     INSTRUCTIONS = project[2:]
+
+    if request.form:
+        if "task" in request.form: # Checks which submit button was pressed
+            # Adding an instruction
+            NEW_INSTRUCTIONS = request.form.get("new_task")
+            print(NEW_INSTRUCTIONS)
+        else:
+            # Adding a part
+            NEW_PART = []
+            for i in range(9):
+                NEW_PART.append(request.form.get(PART_DATA[i+1]))
+            print(NEW_PART)
+
     return render_template("/project.html",name=PROJECT_NAME,info=INFO,instructions=INSTRUCTIONS)
 
 
@@ -145,7 +168,9 @@ def createTable(NAME):
 
 ### --- Processing --- ###
 
-
+def processInstruction(RAW):
+    RAW = RAW.split("\n")
+    print(RAW)      
 
 ### --- Outputs --- ###
 
@@ -198,11 +223,10 @@ def getAllProjects():
         list: projects with info and instructions
     """
     DATA = readFile()
-    print(DATA)
     PROJECTS = []
     for i in range(len(DATA)):
         PROJECTS.append(DATA[i].split(","))
-    print(PROJECTS)
+        if PROJECTS[i][-1] == "\n": PROJECTS[i].pop(-1)
     return PROJECTS
 
 ### --- Main Code --- ###
