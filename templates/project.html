@@ -12,7 +12,7 @@
                 <a href="/">Go back</a><hr>
                 
                 <h3>Add an instruction:</h3>
-                <form method="POST" action="/<project>">
+                <form method="POST" action="/{{name}}">
                     <textarea rows="5" cols="120" name="new_task">
 1. Step 1
 2. Step 2
@@ -24,7 +24,7 @@ Please do not use . anywhere except for the numbers
 
                 <h3>Add a part:</h3>
                 <h6>It is recommended that every size be input in inches, either as <i>6"</i> or <i>6 inches</i>.</h6>
-                <form method="POST" action="/<project>">
+                <form method="POST" action="/{{name}}">
                     <label for="part_name"> Part name: </label> <input type="text" name="part_name">
                     <label for="pieces"> Pieces: </label> <input type="text" name="pieces">
                     <label for="material"> Material: </label> <input type="text" name="material">

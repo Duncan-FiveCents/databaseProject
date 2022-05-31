@@ -48,9 +48,10 @@ app.secret_key = KEY
 
 @app.route("/",methods = ["GET","POST"])
 def index():
-    global ALERT_SHOWN
     """Website homepage
     """
+    global ALERT_SHOWN
+
     if "ALERT" in session and ALERT_SHOWN == False:
         ALERT = session["ALERT"]
         ALERT_SHOWN = True
@@ -97,27 +98,26 @@ def createProject():
 @app.route("/<project>",methods = ["GET","POST"])
 def displayProject(project):
     LIST = getAllProjects()
+
     # Checks for a matching project name and grabs that data
+    PROJECT_NAME, INFO, INSTRUCTIONS = "","",""
     for i in range(len(LIST)):
         if LIST[i][0] == project:
             project = LIST[i]
+            PROJECT_NAME = project[0]
+            INFO = project[1]
+            INSTRUCTIONS = project[2:]
             break
-
-    PROJECT_NAME =project[0]
-    INFO = project[1]
-    INSTRUCTIONS = project[2:]
 
     if request.form:
         if "task" in request.form: # Checks which submit button was pressed
             # Adding an instruction
             NEW_INSTRUCTIONS = request.form.get("new_task")
-            print(NEW_INSTRUCTIONS)
         else:
             # Adding a part
             NEW_PART = []
-            for i in range(9):
-                NEW_PART.append(request.form.get(PART_DATA[i+1]))
-            print(NEW_PART)
+            for i in range(9): NEW_PART.append(request.form.get(PART_DATA[i+1]))
+            addPart(NEW_PART,PROJECT_NAME)
 
     return render_template("/project.html",name=PROJECT_NAME,info=INFO,instructions=INSTRUCTIONS)
 
@@ -159,18 +159,40 @@ def createTable(NAME):
             (
                 part_name TEXT PRIMARY KEY,
                 pieces TEXT, material TEXT,
-                fin_thick TEXT, fin_width TEXT, fin_lenght TEXT,
+                fin_thick TEXT, fin_width TEXT, fin_length TEXT,
                 rough_thick TEXT, rough_width TEXT, rough_length TEXT
             )
     ;""")
     CONNECTION.commit()
     CONNECTION.close()
 
+def addPart(PART,PROJECT):
+    """Adds a new part to the material list
+
+    Args:
+        PART (list): list of new part information
+        PROJECT (str): the project to add the part to
+    """
+    CONNECTION = sqlite3.connect(MATERIAL_LIST)
+    CURSOR = CONNECTION.cursor()
+
+    PROJECT = PROJECT.replace(" ","_") # Replaces spaces with underscores before checking database
+
+    CURSOR.execute(f"""
+        INSERT INTO {PROJECT} (
+            part_name,
+            pieces, material,
+            fin_thick, fin_width, fin_length,
+            rough_thick, rough_width, rough_length
+        )
+        VALUES(?,?,?,?,?,?,?,?,?)
+    ;""",PART)
+    CONNECTION.commit()
+    CONNECTION.close()
+
 ### --- Processing --- ###
 
-def processInstruction(RAW):
-    RAW = RAW.split("\n")
-    print(RAW)      
+
 
 ### --- Outputs --- ###
 
