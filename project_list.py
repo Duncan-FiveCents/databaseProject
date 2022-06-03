@@ -7,7 +7,7 @@ date-created: 13/5/22
 '''
 
 import sqlite3, os, pathlib
-from flask import Flask, redirect, render_template, request, session
+from flask import Flask, redirect, render_template, request, session, url_for
 
 ### --- Variables -- ###
 
@@ -114,8 +114,8 @@ def displayProject(project):
     # I added code to each HTML page which prevents the request, at the cost of having no icon
     # Although the code in the HTML makes this statement pointless, I kept it for two reasons
     # 1. In case the request happens, and 2. I needed a spot to explain why there's no icon
-    if PROJECT_NAME != "f": TABLE = getMaterials(PROJECT_NAME)
-    else: TABLE = []
+    if PROJECT_NAME != "f": PARTS = getMaterials(PROJECT_NAME)
+    else: PARTS = []
 
     if request.form:
         if "task" in request.form: # Checks which submit button was pressed
@@ -126,8 +126,10 @@ def displayProject(project):
             NEW_PART = []
             for i in range(9): NEW_PART.append(request.form.get(PART_DATA[i+1]))
             addPart(NEW_PART,PROJECT_NAME)
+            # This forces a refresh so that the new part shows up immediately
+            return redirect(url_for('displayProject',project=PROJECT_NAME))
 
-    return render_template("/project.html",name=PROJECT_NAME,info=INFO,instructions=INSTRUCTIONS,table=TABLE)
+    return render_template("/project.html",name=PROJECT_NAME,info=INFO,instructions=INSTRUCTIONS,parts=PARTS)
 
 
 ### --- Inputs --- ###
@@ -264,6 +266,9 @@ def getMaterials(NAME):
     
     Args:
         NAME (str): name of project
+    
+    Returns:
+        list: list of parts
     """
     CONNECTION = sqlite3.connect(MATERIAL_LIST)
     CURSOR = CONNECTION.cursor()
@@ -275,7 +280,13 @@ def getMaterials(NAME):
         FROM {NAME}
     ;""").fetchall()
     CONNECTION.close()
-    
+
+    # Cleans data so that it won't display "None" in the table
+    for i in range(len(DATA)):
+        for j in range(len(DATA[i])):
+            if DATA[i][j] == None:
+                DATA[i][j] = ""
+
     return DATA
 
 ### --- Main Code --- ###

@@ -50,7 +50,25 @@ Please do not use . anywhere except for the numbers
                     <li>{{instructions[task]}}</li>
                 {% endfor %}
                 </ul>
-                
+                {% if parts != [] %}
+                    <h6>Parts:</h6>
+                    <table class="table">
+                        <tr>
+                            <th>Part Name</th>
+                            <th># of pieces</th> <th>Material</th>
+                            <th>Finished Thickness</th> <th>Finished Width</th> <th>Finished Length</th>
+                            <th>Rough Thickness</th> <th>Rough Width</th> <th>Rough Length</th>
+                        </tr>
+                        {% for part in parts %}
+                            <tr>
+                                <td>{{part[0]}}</td>
+                                <td>{{part[1]}}</td> <td>{{part[2]}}</td>
+                                <td>{{part[3]}}</td> <td>{{part[4]}}</td> <td>{{part[5]}}</td>
+                                <td>{{part[6]}}</td> <td>{{part[7]}}</td> <td>{{part[8]}}</td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                {% endif %}                
             </div>
         </div>
         <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
