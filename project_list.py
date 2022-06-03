@@ -109,6 +109,14 @@ def displayProject(project):
             INSTRUCTIONS = project[2:]
             break
 
+    # This if statement specifically checks if the project is called "favicon.ico"
+    # This happens when the browser sends a request for the icon, overwriting the initial project search
+    # I added code to each HTML page which prevents the request, at the cost of having no icon
+    # Although the code in the HTML makes this statement pointless, I kept it for two reasons
+    # 1. In case the request happens, and 2. I needed a spot to explain why there's no icon
+    if PROJECT_NAME != "f": TABLE = getMaterials(PROJECT_NAME)
+    else: TABLE = []
+
     if request.form:
         if "task" in request.form: # Checks which submit button was pressed
             # Adding an instruction
@@ -119,7 +127,7 @@ def displayProject(project):
             for i in range(9): NEW_PART.append(request.form.get(PART_DATA[i+1]))
             addPart(NEW_PART,PROJECT_NAME)
 
-    return render_template("/project.html",name=PROJECT_NAME,info=INFO,instructions=INSTRUCTIONS)
+    return render_template("/project.html",name=PROJECT_NAME,info=INFO,instructions=INSTRUCTIONS,table=TABLE)
 
 
 ### --- Inputs --- ###
@@ -250,6 +258,25 @@ def getAllProjects():
         PROJECTS.append(DATA[i].split(","))
         if PROJECTS[i][-1] == "\n": PROJECTS[i].pop(-1)
     return PROJECTS
+
+def getMaterials(NAME):
+    """Gets the material list for a single project
+    
+    Args:
+        NAME (str): name of project
+    """
+    CONNECTION = sqlite3.connect(MATERIAL_LIST)
+    CURSOR = CONNECTION.cursor()
+
+    NAME = NAME.replace(" ","_")
+
+    DATA = CURSOR.execute(f"""
+        SELECT *
+        FROM {NAME}
+    ;""").fetchall()
+    CONNECTION.close()
+    
+    return DATA
 
 ### --- Main Code --- ###
 
