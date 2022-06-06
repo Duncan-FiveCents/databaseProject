@@ -131,6 +131,11 @@ def displayProject(project):
 
     return render_template("/project.html",name=PROJECT_NAME,info=INFO,instructions=INSTRUCTIONS,parts=PARTS)
 
+@app.route("/<project>/delete-<part>",methods = ["GET","POST"])
+def deletePart(project,part):
+    removePart(project,part)
+    return redirect(url_for("displayProject",project=project))
+
 ### --- Inputs --- ###
 
 def createFiles():
@@ -201,7 +206,24 @@ def addPart(PART,PROJECT):
 
 ### --- Processing --- ###
 
+def removePart(PROJECT,PART):
+    """Removes specified part from specified project
 
+    Args:
+        PROJECT (str): name of project
+        PART (str): name of part
+    """
+    CONNECTION = sqlite3.connect(MATERIAL_LIST)
+    CURSOR = CONNECTION.cursor()
+
+    PROJECT = PROJECT.replace(" ","_")
+
+    CURSOR.execute(f"""
+        DELETE FROM {PROJECT}
+        WHERE part_name="{PART}"
+    ;""")
+    CONNECTION.commit()
+    CONNECTION.close()
 
 ### --- Outputs --- ###
 
