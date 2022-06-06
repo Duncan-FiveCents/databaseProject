@@ -131,7 +131,6 @@ def displayProject(project):
 
     return render_template("/project.html",name=PROJECT_NAME,info=INFO,instructions=INSTRUCTIONS,parts=PARTS)
 
-
 ### --- Inputs --- ###
 
 def createFiles():
