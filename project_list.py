@@ -73,11 +73,10 @@ def createProject():
         PROJECT_NAME = request.form.get("title")
         DIFFICULTY = request.form.get("difficulty")
         TIME = request.form.get("time")
-        TEXT = [PROJECT_NAME,f" (Difficulty: {DIFFICULTIES[int(DIFFICULTY)]} | Time: {TIME} hours)"]
-        writeProject(TEXT)
         PROJECT_NAME = PROJECT_NAME.replace(" ","_") # Replaces any spaces with underscores because spaces break
 
         if tableQuery(PROJECT_NAME) == None:
+            writeProject([PROJECT_NAME.replace("_"," "),f" (Difficulty: {DIFFICULTIES[int(DIFFICULTY)]} | Time: {TIME} hours)"])
             createTable(PROJECT_NAME)
             # Used to determine alert colour since I can't use f strings in jinja
             # 0 for green, 1 for red, and I might add more later
@@ -225,6 +224,9 @@ def removePart(PROJECT,PART):
     CONNECTION.commit()
     CONNECTION.close()
 
+def removeProject(PROJECT):
+    pass
+
 ### --- Outputs --- ###
 
 def writeFile(DATA):
@@ -246,8 +248,9 @@ def writeProject(PROJECT):
     """Writes a new project to the project file
 
     Args:
-        NAME (list): project title, difficulty, and time
+        PROJECT (list): project title, difficulty, and time
     """
+    print(PROJECT)
     DATA = readFile()
     DATA.append(PROJECT)
     writeFile(DATA)
@@ -267,6 +270,8 @@ def tableQuery(NAME):
         WHERE type='table'
         AND name='{NAME}'
     ;""").fetchone()
+    CONNECTION.close()
+
     return QUERY
 
 def getAllProjects():
