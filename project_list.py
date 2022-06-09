@@ -130,10 +130,15 @@ def displayProject(project):
 
     return render_template("/project.html",name=PROJECT_NAME,info=INFO,instructions=INSTRUCTIONS,parts=PARTS)
 
-@app.route("/<project>/delete-<part>",methods = ["GET","POST"])
+@app.route("/<project>/delete-<part>")
 def deletePart(project,part):
     removePart(project,part)
     return redirect(url_for("displayProject",project=project))
+
+@app.route("/delete/<project>")
+def deleteProject(project):
+    removeProject(project)
+    return redirect(url_for("index"))
 
 ### --- Inputs --- ###
 
@@ -223,9 +228,28 @@ def removePart(PROJECT,PART):
     ;""")
     CONNECTION.commit()
     CONNECTION.close()
-
+ 
 def removeProject(PROJECT):
-    pass
+    """Deletes project from existence
+
+    Args:
+        PROJECT (str): project name
+    """
+    CONNECTION = sqlite3.connect(MATERIAL_LIST)
+    CURSOR = CONNECTION.cursor()
+
+    INSTRUCTIONS = readFile()
+    print(INSTRUCTIONS)
+    for i in range(len(INSTRUCTIONS)):
+        if INSTRUCTIONS[i][0] == PROJECT:
+            INSTRUCTIONS.pop(i)
+    writeFile(INSTRUCTIONS)
+
+    PROJECT = PROJECT.replace(" ","_")
+
+    CURSOR.execute(f"DROP TABLE {PROJECT};")
+    CONNECTION.commit()
+    CONNECTION.close()
 
 ### --- Outputs --- ###
 
