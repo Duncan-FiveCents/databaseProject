@@ -120,6 +120,7 @@ def displayProject(project):
         if "task" in request.form: # Checks which submit button was pressed
             # Adding an instruction
             NEW_INSTRUCTIONS = request.form.get("new_task")
+            addInstruction(PROJECT_NAME,NEW_INSTRUCTIONS)
         else:
             # Adding a part
             NEW_PART = []
@@ -133,6 +134,11 @@ def displayProject(project):
 @app.route("/<project>/delete-<part>")
 def deletePart(project,part):
     removePart(project,part)
+    return redirect(url_for("displayProject",project=project))
+
+@app.route("/<project>/deleteInstructions")
+def deleteInstructions(project):
+    removeInstructions(project)
     return redirect(url_for("displayProject",project=project))
 
 @app.route("/delete/<project>")
@@ -162,6 +168,9 @@ def readFile():
     for i in range(len(DATA)):
         DATA[i].rstrip()
         DATA[i] = DATA[i].split(",")
+        for j in range(len(DATA[i])):
+            if DATA[i][j] == "\n": DATA[i].pop(j)
+
     FILE.close()
     return DATA
 
@@ -209,6 +218,19 @@ def addPart(PART,PROJECT):
     CONNECTION.commit()
     CONNECTION.close()
 
+def addInstruction(PROJECT,INSTRUCTIONS):
+    DATA = readFile()
+    
+    INSTRUCTIONS = INSTRUCTIONS.split("\r\n")
+    INSTRUCTIONS = INSTRUCTIONS.pop(-1) # Removes the empty entry
+    print(INSTRUCTIONS)
+
+    for i in range(len(DATA)):
+        if DATA[i][0] == PROJECT:
+            DATA[i].append(INSTRUCTIONS)
+            break
+    writeFile(DATA)
+
 ### --- Processing --- ###
 
 def removePart(PROJECT,PART):
@@ -240,10 +262,12 @@ def removeProject(PROJECT):
     CURSOR = CONNECTION.cursor()
 
     INSTRUCTIONS = readFile()
+
     print(INSTRUCTIONS)
     for i in range(len(INSTRUCTIONS)):
         if INSTRUCTIONS[i][0] == PROJECT:
             INSTRUCTIONS.pop(i)
+
     writeFile(INSTRUCTIONS)
 
     PROJECT = PROJECT.replace(" ","_")
@@ -251,6 +275,14 @@ def removeProject(PROJECT):
     CURSOR.execute(f"DROP TABLE {PROJECT};")
     CONNECTION.commit()
     CONNECTION.close()
+
+def removeInstructions(PROJECT):
+    DATA = readFile()
+    for i in range(len(DATA)):
+        if DATA[i][0] == PROJECT:
+            DATA[i] = [DATA[i][0],DATA[i][1]]
+            break
+    writeFile(DATA)
 
 ### --- Outputs --- ###
 
@@ -262,10 +294,13 @@ def writeFile(DATA):
     """
     print(DATA)
     NEW_DATA = ""
-    FILE = open(PROJECT_LIST, "w")
+    
     for i in range(len(DATA)):
-        for j in range(len(DATA[i])):
+        for j in range(len(DATA[i])-1):
             NEW_DATA += f"{DATA[i][j]},"
+        NEW_DATA += "\n"
+
+    FILE = open(PROJECT_LIST, "w")
     FILE.write(NEW_DATA)
     FILE.close()
 

@@ -25,7 +25,9 @@
                 <h3>Projects</h3>
                 <ul>
                     {% for project in projects %}
-                        <li><a href="/{{project[0]}}">{{project[0]}}{{project[1]}}</a></li>
+                        {% if project[0] != "" %}
+                            <li><a href="/{{project[0]}}">{{project[0]}}{{project[1]}}</a></li>
+                        {% endif %}
                     {% endfor %}
                 </ul>
             </div>
