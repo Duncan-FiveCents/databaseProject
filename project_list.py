@@ -73,10 +73,10 @@ def createProject():
         PROJECT_NAME = request.form.get("title")
         DIFFICULTY = request.form.get("difficulty")
         TIME = request.form.get("time")
-        PROJECT_NAME = PROJECT_NAME.replace(" ","_") # Replaces any spaces with underscores because spaces break
+        PROJECT_NAME = PROJECT_NAME.replace(" ","_") # Replaces any spaces with underscores because spaces break sqlite
 
         if tableQuery(PROJECT_NAME) == None:
-            writeProject([PROJECT_NAME.replace("_"," "),f" (Difficulty: {DIFFICULTIES[int(DIFFICULTY)]} | Time: {TIME} hours)"])
+            writeProject([PROJECT_NAME.replace("_"," "),f" (Difficulty: {DIFFICULTIES[int(DIFFICULTY)]} | Time: {TIME} hours)","\n"])
             createTable(PROJECT_NAME)
             # Used to determine alert colour since I can't use f strings in jinja
             # 0 for green, 1 for red, and I might add more later
@@ -161,6 +161,7 @@ def readFile():
     DATA = FILE.readlines()
     for i in range(len(DATA)):
         DATA[i].rstrip()
+        DATA[i] = DATA[i].split(",")
     FILE.close()
     return DATA
 
@@ -259,12 +260,12 @@ def writeFile(DATA):
     Args:
         DATA (list): list of projects
     """
+    print(DATA)
     NEW_DATA = ""
     FILE = open(PROJECT_LIST, "w")
     for i in range(len(DATA)):
         for j in range(len(DATA[i])):
             NEW_DATA += f"{DATA[i][j]},"
-    NEW_DATA += "\n"
     FILE.write(NEW_DATA)
     FILE.close()
 
@@ -274,7 +275,6 @@ def writeProject(PROJECT):
     Args:
         PROJECT (list): project title, difficulty, and time
     """
-    print(PROJECT)
     DATA = readFile()
     DATA.append(PROJECT)
     writeFile(DATA)
@@ -307,7 +307,7 @@ def getAllProjects():
     DATA = readFile()
     PROJECTS = []
     for i in range(len(DATA)):
-        PROJECTS.append(DATA[i].split(","))
+        PROJECTS.append(DATA[i])
         if PROJECTS[i][-1] == "\n": PROJECTS[i].pop(-1)
     return PROJECTS
 
