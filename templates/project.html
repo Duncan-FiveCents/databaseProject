@@ -13,14 +13,6 @@
                 <a href="/" class="btn btn-primary">Go back</a> <a href="/delete/{{name}}" class="btn btn-danger">Delete Project</a> <hr>
                 <h3>{{name}}</h2>
                 <h4>{{info}}</h4>
-                {% if instructions != [] %}
-                    <h6>Instructions:</h6>
-                {% endif %}
-                <ul>
-                {% for task in instructions %}
-                    <li>{{instructions[task]}}</li>
-                {% endfor %}
-                </ul>
                 {% if parts != [] %}
                     <h6>Parts:</h6>
                     <table class="table">
@@ -45,14 +37,13 @@
                     <h3>Add an instruction:</h3>
                     <form method="POST" action="/{{name}}">
                         <textarea rows="5" cols="120" name="new_task">
-Seperate each instruction with a line break!
-                        </textarea>
+Seperate each instruction with a line break!</textarea>
                     <input type="submit" name="task" value="Add">
                 </form><hr>
                 {% else %}
                     <ol>
                         {% for task in instructions %}
-                            <li>task</li>
+                            <li>{{task}}</li>
                         {% endfor %}
                     </ol>
                     <a href="/{{name}}/deleteInstructions" class="btn btn-danger">Delete</a>

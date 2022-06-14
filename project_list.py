@@ -76,7 +76,7 @@ def createProject():
         PROJECT_NAME = PROJECT_NAME.replace(" ","_") # Replaces any spaces with underscores because spaces break sqlite
 
         if tableQuery(PROJECT_NAME) == None:
-            writeProject([PROJECT_NAME.replace("_"," "),f" (Difficulty: {DIFFICULTIES[int(DIFFICULTY)]} | Time: {TIME} hours)","\n"])
+            writeProject([PROJECT_NAME.replace("_"," "),f" (Difficulty: {DIFFICULTIES[int(DIFFICULTY)]} | Time: {TIME} hours)"])
             createTable(PROJECT_NAME)
             # Used to determine alert colour since I can't use f strings in jinja
             # 0 for green, 1 for red, and I might add more later
@@ -219,17 +219,22 @@ def addPart(PART,PROJECT):
     CONNECTION.close()
 
 def addInstruction(PROJECT,INSTRUCTIONS):
+    """Adds instructions to a project
+
+    Args:
+        PROJECT (str): project to add onto
+        INSTRUCTIONS (str): instructions to be added
+    """
     DATA = readFile()
     
     INSTRUCTIONS = INSTRUCTIONS.split("\r\n")
-    INSTRUCTIONS = INSTRUCTIONS.pop(-1) # Removes the empty entry
-    print(INSTRUCTIONS)
 
     for i in range(len(DATA)):
-        if DATA[i][0] == PROJECT:
-            DATA[i].append(INSTRUCTIONS)
+        if DATA[i][0] == PROJECT and INSTRUCTIONS != DATA[i][2:]:
+            for j in range(len(INSTRUCTIONS)):
+                DATA[i].append(INSTRUCTIONS[j])
+            writeFile(DATA)
             break
-    writeFile(DATA)
 
 ### --- Processing --- ###
 
@@ -296,10 +301,9 @@ def writeFile(DATA):
     NEW_DATA = ""
     
     for i in range(len(DATA)):
-        for j in range(len(DATA[i])-1):
-            NEW_DATA += f"{DATA[i][j]},"
+        for j in range(len(DATA[i])):
+            if DATA[i] != [""]: NEW_DATA += f"{DATA[i][j]},"
         NEW_DATA += "\n"
-
     FILE = open(PROJECT_LIST, "w")
     FILE.write(NEW_DATA)
     FILE.close()
