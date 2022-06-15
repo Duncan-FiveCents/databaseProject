@@ -282,6 +282,11 @@ def removeProject(PROJECT):
     CONNECTION.close()
 
 def removeInstructions(PROJECT):
+    """Removes all instructions from a project
+
+    Args:
+        PROJECT (str): the project to remove instructions from
+    """
     DATA = readFile()
     for i in range(len(DATA)):
         if DATA[i][0] == PROJECT:
